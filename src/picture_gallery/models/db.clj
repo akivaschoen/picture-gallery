@@ -7,6 +7,14 @@
    :user "admin"
    :password "admin"})
 
+(defn add-image [user-id name]
+  (sql/with-db-transaction [con db]
+    (if (empty? 
+          (sql/query db ["SELECT userid FROM images WHERE userid = ? AND name = ?" user-id name]))
+      (sql/insert! db :images {:userid user-id :name name})
+      (throw
+        (Exception. "You have already uploaded an image with that name.")))))
+
 (defn create-user [user]
   (sql/insert! db :users user))
 

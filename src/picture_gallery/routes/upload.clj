@@ -58,12 +58,13 @@
       (try
         (noir.io/upload-file (gallery-path) file :create-path? true)
         (save-thumbnail file)
+        (db/add-image (session/get :user) (lower-case filename))
         (image {:height "150px"}
                (lower-case 
                  (str "/img/" (session/get :user) "/" thumb-prefix (url-encode filename))))
         
         (catch Exception ex
-          (str "Error uploading file " (.getMessage ex)))))))
+          (str "Error uploading file: " (.getMessage ex)))))))
 
 (defn serve-file [user-id filename]
   (file-response (lower-case (join File/separator [galleries user-id filename]))))
