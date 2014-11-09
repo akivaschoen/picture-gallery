@@ -1,10 +1,12 @@
 (ns picture-gallery.routes.auth
   (:require [hiccup.form :refer :all]
             [compojure.core :refer :all]
+            [picture-gallery.models.db :as db]
             [picture-gallery.routes.home :refer :all]
             [picture-gallery.views.layout :as layout]
-            [noir.session :as session]
             [noir.response :as resp]
+            [noir.session :as session]
+            [noir.util.crypt :as crypt]
             [noir.validation :as vali]))
 
 (defn valid? [id pass pass1]
@@ -39,11 +41,24 @@
 
              (submit-button {:tabindex 4} "Create Account"))))
 
+(defn format-error [id ex]
+  (cond
+    (and (instance? org.postgresql.util.PSQLException ex)
+         (= 0 (.getErrorCode ex)))
+    (str "The user with ID " id " already exists!")
+    
+    :else
+    "An error has occurred while processing the request."))
+
 (defn handle-registration [id pass pass1]
   (if (valid? id pass pass1)
-    (do
+    (try
+      (db/create-user {:id id :pass (crypt/encrypt pass)})
       (session/put! :user id)
-      (resp/redirect "/"))
+      (resp/redirect "/")
+      (catch Exception ex
+        (vali/rule false [:id (format-error id ex)])
+        (registration-page)))
     (registration-page id)))
 
 (defroutes auth-routes
