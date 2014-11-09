@@ -1,5 +1,6 @@
 (ns picture-gallery.routes.upload
   (:require [clojure.java.io :as io]
+            [clojure.string :refer [join lower-case]]
             [compojure.core :refer [defroutes GET POST]]
             [hiccup.form :refer :all]
             [hiccup.element :refer [image]]
@@ -38,7 +39,7 @@
     (ImageIO/write
       (scale-image (io/input-stream (str path filename)))
       "png"
-      (File. (str path thumb-prefix filename)))))
+      (File. (lower-case (str path thumb-prefix filename))))))
 
 (defn upload-page [info]
   (layout/common
@@ -58,16 +59,16 @@
         (noir.io/upload-file (gallery-path) file :create-path? true)
         (save-thumbnail file)
         (image {:height "150px"}
-               (str "/img/" thumb-prefix (url-encode filename)))
+               (lower-case 
+                 (str "/img/" (session/get :user) "/" thumb-prefix (url-encode filename))))
         
         (catch Exception ex
           (str "Error uploading file " (.getMessage ex)))))))
 
-(defn serve-file [filename]
-  (file-response (str (gallery-path) File/separator filename)))
+(defn serve-file [user-id filename]
+  (file-response (lower-case (join File/separator [galleries user-id filename]))))
 
 (defroutes upload-routes
-  (GET "/upload" [info] (upload-page info))
-  (POST "/upload" [file] (handle-upload file))
-  (GET "/img/:filename" [filename] (serve-file filename)))
-
+  (GET "/upload" [info] (restricted (upload-page info)))
+  (POST "/upload" [file] (restricted (handle-upload file)))
+  (GET "/img/:user-id/:filename" [user-id filename] (restricted (serve-file user-id filename))))

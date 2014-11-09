@@ -5,19 +5,12 @@
             [picture-gallery.models.db :as db]
             [picture-gallery.routes.home :refer :all]
             [picture-gallery.views.layout :as layout]
+            [picture-gallery.util :refer :all]
             [noir.response :as resp]
             [noir.session :as session]
             [noir.util.crypt :as crypt]
-            [noir.validation :as vali]))
-
-(defn valid? [id pass pass1]
-  (vali/rule (vali/has-value? id)
-             [:id "User ID is required."])
-  (vali/rule (vali/min-length? pass 5)
-             [:pass "Password must be at least 5 characters."])
-  (vali/rule (= pass pass1)
-             [:pass "Entered passwords do not match."])
-  (not (vali/errors? :id :pass :pass1)))
+            [noir.validation :as vali])
+  (:import java.io.File))
 
 (defn error-item [[error]]
   [:div.error error])
@@ -52,11 +45,26 @@
     :else
     "An error has occurred while processing the request."))
 
+(defn valid? [id pass pass1]
+  (vali/rule (vali/has-value? id)
+             [:id "User ID is required."])
+  (vali/rule (vali/min-length? pass 5)
+             [:pass "Password must be at least 5 characters."])
+  (vali/rule (= pass pass1)
+             [:pass "Entered passwords do not match."])
+  (not (vali/errors? :id :pass :pass1)))
+
+(defn create-gallery-path []
+  (let [user-path (File. (gallery-path))]
+    (if-not (.exists user-path) (.mkdirs user-path))
+    (str (.getAbsolutePath user-path) File/separator)))
+
 (defn handle-registration [id pass pass1]
   (if (valid? id pass pass1)
     (try
       (db/create-user {:id id :pass (crypt/encrypt pass)})
       (session/put! :user id)
+      (create-gallery-path)
       (resp/redirect "/")
       (catch Exception ex
         (vali/rule false [:id (format-error id ex)])
