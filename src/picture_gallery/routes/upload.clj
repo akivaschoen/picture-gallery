@@ -7,7 +7,7 @@
             [hiccup.util :refer [url-encode]]
             [picture-gallery.models.db :as db]
             [picture-gallery.views.layout :as layout]
-            [picture-gallery.util :refer :all]
+            [picture-gallery.util :refer [galleries gallery-path thumb-prefix thumb-uri]]
             [noir.io :refer [upload-file]]
             [noir.session :as session]
             [noir.response :as resp]
@@ -20,7 +20,6 @@
            javax.imageio.ImageIO))
 
 (def thumb-size 150)
-(def thumb-prefix "thumb_")
 
 (defn scale [img ratio width height]
   (let [scale (AffineTransform/getScaleInstance (double ratio) (double ratio))
@@ -60,8 +59,7 @@
         (save-thumbnail file)
         (db/add-image (session/get :user) (lower-case filename))
         (image {:height "150px"}
-               (lower-case 
-                 (str "/img/" (session/get :user) "/" thumb-prefix (url-encode filename))))
+               (thumb-uri (session/get :user) filename))
         
         (catch Exception ex
           (str "Error uploading file: " (.getMessage ex)))))))

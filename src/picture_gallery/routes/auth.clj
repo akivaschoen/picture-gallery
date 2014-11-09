@@ -5,7 +5,7 @@
             [picture-gallery.models.db :as db]
             [picture-gallery.routes.home :refer :all]
             [picture-gallery.views.layout :as layout]
-            [picture-gallery.util :refer :all]
+            [picture-gallery.util :refer [gallery-path]]
             [noir.response :as resp]
             [noir.session :as session]
             [noir.util.crypt :as crypt]
