@@ -17,3 +17,8 @@ label {
 .error {
 	color: red;
 }
+
+#submit-button {
+	width: 120px;
+	float: left;
+}

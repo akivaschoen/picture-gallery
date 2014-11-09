@@ -1,5 +1,6 @@
 (ns picture-gallery.routes.auth
-  (:require [hiccup.form :refer :all]
+  (:require [hiccup.element :refer [link-to]]
+            [hiccup.form :refer :all] 
             [compojure.core :refer :all]
             [picture-gallery.models.db :as db]
             [picture-gallery.routes.home :refer :all]
@@ -39,7 +40,8 @@
              (vali/on-error :pass1 error-item)
              [:br]
 
-             (submit-button {:tabindex 4} "Create Account"))))
+             (submit-button {:tabindex 4} "Create Account")
+             (link-to "/" "Cancel"))))
 
 (defn format-error [id ex]
   (cond
@@ -61,7 +63,19 @@
         (registration-page)))
     (registration-page id)))
 
+(defn handle-login [id pass]
+  (let [user (db/get-user id)]
+    (if (and user (crypt/compare pass (:pass user)))
+      (session/put! :user id)))
+  
+  (resp/redirect "/"))
+
+(defn handle-logout []
+  (session/clear!)
+  (resp/redirect "/"))
+
 (defroutes auth-routes
   (GET "/register" [] (registration-page))
-  (POST "/register" [id pass pass1] (handle-registration id pass pass1)))
-
+  (POST "/register" [id pass pass1] (handle-registration id pass pass1))
+  (POST "/login" [id pass] (handle-login id pass))
+  (GET "/logout" [] (handle-logout)))

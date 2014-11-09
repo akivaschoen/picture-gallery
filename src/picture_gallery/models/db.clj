@@ -9,3 +9,7 @@
 
 (defn create-user [user]
   (sql/insert! db :users user))
+
+(defn get-user [id]
+  (first 
+    (sql/query db ["SELECT * FROM users WHERE id = ?" id])))

@@ -4,7 +4,10 @@
             [picture-gallery.views.layout :as layout]))
 
 (defn home []
-  (layout/common [:h1 "Hello " (session/get :user)]))
+  (layout/common 
+    (if-let [user (session/get :user)]
+      [:h1 "Hello " user]
+      [:h1 "Hello World"])))
 
 (defroutes home-routes
   (GET "/" [] (home)))
