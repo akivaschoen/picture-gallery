@@ -5,9 +5,10 @@
                  [compojure "1.1.6"]
                  [hiccup "1.0.5"]
                  [ring-server "0.3.1"]
+                 [ring/ring-defaults  "0.1.2"]
                  [postgresql/postgresql "9.3-1102.jdbc41"]
                  [org.clojure/java.jdbc "0.3.6"]
-                 [lib-noir "0.9.4"]]
+                 [lib-noir "0.8.2"]]
   :plugins [[lein-ring "0.8.12"]]
   :ring {:handler picture-gallery.handler/app
          :init picture-gallery.handler/init
