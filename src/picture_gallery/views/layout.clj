@@ -4,17 +4,23 @@
             [hiccup.element :refer [link-to]]
             [noir.session :as session]))
 
+(defn make-menu [& items]
+  [:div (for [item items] [:div.menuitem item])])
+
 (defn guest-menu []
-  [:div (link-to "/register" "register")
-   (form-to [:post "/login"]
-            (text-field {:placeholder "User Name"} "id")
-            (password-field {:placeholder "Password"} "pass")
-            (submit-button "Login"))])
+  (make-menu
+    (link-to "/" "Home")
+    (link-to "/register" "register")
+    (form-to [:post "/login"]
+             (text-field {:placeholder "User Name"} "id")
+             (password-field {:placeholder "Password"} "pass")
+              (submit-button "Login"))))
 
 (defn user-menu [user]
-  (list
-    [:div (link-to "/upload" "Upload Images")]
-    [:div (link-to "/logout" (str "Logout " user))]))
+  (make-menu
+    (link-to "/" "Home")
+    (link-to "/upload" "Upload Images")
+    (link-to "/logout" (str "Logout " user))))
 
 (defn base [& content]
   (html5
@@ -28,5 +34,5 @@
     (if-let [user (session/get :user)]
       (user-menu user)
       (guest-menu))
-    content))
+    [:div.content content]))
 

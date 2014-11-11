@@ -4,6 +4,7 @@
             [noir.session :as session]
             [noir.util.middleware :as noir-middleware]
             [picture-gallery.routes.auth :refer [auth-routes]]
+            [picture-gallery.routes.gallery :refer [gallery-routes]]
             [picture-gallery.routes.home :refer [home-routes]]
             [picture-gallery.routes.upload :refer [upload-routes]]))
 
@@ -22,6 +23,7 @@
 
 (def app (noir-middleware/app-handler 
            [auth-routes
+            gallery-routes
             home-routes 
             upload-routes
             app-routes]
