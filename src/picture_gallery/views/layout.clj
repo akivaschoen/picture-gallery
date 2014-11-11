@@ -13,7 +13,7 @@
 (defn guest-menu []
   (make-menu
     (link-to "/" "Home")
-    (link-to "/register" "register")
+    (link-to "/register" "Register")
     (form-to [:post "/login"]
              (text-field {:placeholder "User Name"} "id")
              (password-field {:placeholder "Password"} "pass")
@@ -23,7 +23,8 @@
   (make-menu
     (link-to "/" "Home")
     (link-to "/upload" "Upload Images")
-    (link-to "/logout" (str "Logout " user))))
+    (link-to "/logout" (str "Logout " user))
+    (link-to "/delete-account" "Delete Account")))
 
 (defn utf-8-response [html]
   (content-type (response html) "text/html; charset=utf-8"))
@@ -50,4 +51,3 @@
       (user-menu user)
       (guest-menu))
     [:div.content content]))
-

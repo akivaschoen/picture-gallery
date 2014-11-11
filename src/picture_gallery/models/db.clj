@@ -24,6 +24,9 @@
   (first 
     (sql/query db ["SELECT * FROM users WHERE id = ?" id])))
 
+(defn delete-user [id]
+  (sql/delete! db :users ["id = ?" id]))
+
 (defn images-by-user [user-id]
   (sql/query db ["SELECT * FROM images WHERE userid = ?" user-id]))
 
