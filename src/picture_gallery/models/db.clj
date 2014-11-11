@@ -32,3 +32,6 @@
                  (SELECT *, row_number() over (partition by userid)
                  AS row_number FROM images)
                  AS rows WHERE row_number = 1"]))
+
+(defn delete-image [user-id name]
+  (sql/delete! db :images ["userid = ? AND name = ?" user-id name]))

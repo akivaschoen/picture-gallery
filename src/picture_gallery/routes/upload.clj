@@ -7,7 +7,8 @@
             [hiccup.util :refer [url-encode]]
             [picture-gallery.models.db :as db]
             [picture-gallery.views.layout :as layout]
-            [picture-gallery.util :refer [galleries gallery-path thumb-prefix thumb-uri]]
+            [picture-gallery.util :refer
+             [galleries gallery-path thumb-prefix thumb-uri]]
             [noir.io :refer [upload-file]]
             [noir.session :as session]
             [noir.response :as resp]
@@ -22,9 +23,13 @@
 (def thumb-size 150)
 
 (defn scale [img ratio width height]
-  (let [scale (AffineTransform/getScaleInstance (double ratio) (double ratio))
-        transform-op (AffineTransformOp. scale AffineTransformOp/TYPE_BILINEAR)]
-    (.filter transform-op img (BufferedImage. width height (.getType img)))))
+  (let [scale (AffineTransform/getScaleInstance (double ratio) 
+                                                (double ratio))
+        transform-op (AffineTransformOp. scale 
+                                         AffineTransformOp/TYPE_BILINEAR)]
+    (.filter transform-op img (BufferedImage. width 
+                                              height 
+                                              (.getType img)))))
 
 (defn scale-image [file]
   (let [img (ImageIO/read file)
@@ -64,10 +69,26 @@
         (catch Exception ex
           (str "Error uploading file: " (.getMessage ex)))))))
 
+(defn delete-image [user-id name]
+  (try
+    (db/delete-image user-id name)
+    (io/delete-file (str (gallery-path) File/separator name))
+    (io/delete-file (str (gallery-path) File/separator thumb-prefix name))
+    "ok"
+    (catch Exception ex (.getMessage ex))))
+
+(defn delete-images [names]
+  (let [user-id (session/get :user)]
+    (resp/json
+      (for [name names] {:name name :status (delete-image user-id name)}))))
+
 (defn serve-file [user-id filename]
-  (file-response (lower-case (join File/separator [galleries user-id filename]))))
+  (file-response (lower-case 
+                   (join File/separator [galleries user-id filename]))))
 
 (defroutes upload-routes
+  (GET "/img/:user-id/:filename" 
+       [user-id filename] (serve-file user-id filename))
   (GET "/upload" [info] (restricted (upload-page info)))
   (POST "/upload" [file] (restricted (handle-upload file)))
-  (GET "/img/:user-id/:filename" [user-id filename] (restricted (serve-file user-id filename))))
+  (POST "/delete" [names] (restricted (delete-images names))))

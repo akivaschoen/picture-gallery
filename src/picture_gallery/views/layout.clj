@@ -1,8 +1,11 @@
 (ns picture-gallery.views.layout
-  (:require [hiccup.form :refer :all]
-            [hiccup.page :refer [html5 include-css]]
+  (:require [compojure.response :refer [Renderable]]
             [hiccup.element :refer [link-to]]
-            [noir.session :as session]))
+            [hiccup.form :refer :all]
+            [hiccup.page :refer [html5 include-css include-js]]
+            [hiccup.element :refer [link-to]]
+            [noir.session :as session]
+            [ring.util.response :refer [content-type response]]))
 
 (defn make-menu [& items]
   [:div (for [item items] [:div.menuitem item])])
@@ -22,12 +25,24 @@
     (link-to "/upload" "Upload Images")
     (link-to "/logout" (str "Logout " user))))
 
+(defn utf-8-response [html]
+  (content-type (response html) "text/html; charset=utf-8"))
+
+(deftype RenderablePage [content]
+  Renderable
+  (render [this request]
+    (utf-8-response
+      (html5
+        [:head
+         [:title "Welcome to Picture Gallery"]
+         (include-css "/css/screen.css")
+         [:script {:type "text/javascript"}
+          (str "var context=\"" (:context request) "\";")]
+         (include-js "//code.jquery.com/jquery-2.1.1.min.js")]
+        [:body content]))))
+
 (defn base [& content]
-  (html5
-    [:head
-     [:title "Welcome to picture-gallery"]
-     (include-css "/css/screen.css")]
-    [:body content]))
+  (RenderablePage. content))
 
 (defn common [& content]
   (base
